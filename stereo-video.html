@@ -73,7 +73,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       solarSystem.scale = [0.1, 0.1, 0.1];
       scene.addNode(solarSystem);
 
+//--------------------- The Video Block
+      let video = document.createElement('video');
+      video.loop = true;
+      video.src = 'media/video/Laughing.mp4';
 
+      let videoNode = new VideoNode({
+        video: video,
+        displayMode: 'stereoTopBottom'
+      });
+//---------------------
+      
       function initXR() {
         xrButton = new WebXRButton({
           onRequestSession: onRequestSession,
