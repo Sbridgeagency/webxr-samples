@@ -1,17 +1,15 @@
+  
 <!doctype html>
 <!--
 Copyright 2018 The Immersive Web Community Group
-
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
 the Software without restriction, including without limitation the rights to
 use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
 the Software, and to permit persons to whom the Software is furnished to do so,
 subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -29,32 +27,31 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     <link rel='icon' type='image/png' sizes='96x96' href='favicon-96x96.png'>
     <link rel='stylesheet' href='css/common.css'>
 
-    <title>Stereo Video Player</title>
+    <title>Immersive AR Session</title>
   </head>
   <body>
     <header>
       <details open>
-        <summary>Stereo Video Player</summary>
+        <summary>Immersive AR Session</summary>
         <p>
-          This sample demonstrates how to play a stereo 3D video.
+          This sample demonstrates how to use an 'immersive-ar' XRSession to
+          present a simple WebGL scene to an transparent or passthrough XR
+          device. The logic is largely the same as the corresponding VR sample,
+          with the primary difference being that no background is rendered and
+          the model is scaled down for easier viewing in a real-world space.
           <a class="back" href="./">Back</a>
-          <br/>
-          <hr/>
-          Autoplay when VR starts: <input id='autoplayVideo' type='checkbox'/>
         </p>
-      </summary>
+      </details>
     </header>
     <script type="module">
       import {WebXRButton} from './js/util/webxr-button.js';
       import {Scene} from './js/render/scenes/scene.js';
       import {Renderer, createWebGLContext} from './js/render/core/renderer.js';
-      import {UrlTexture} from './js/render/core/texture.js';
-      import {ButtonNode} from './js/render/nodes/button.js';
-      import {Gltf2Node} from './js/render/nodes/gltf2.js';
-      import {VideoNode} from './js/render/nodes/video.js';
+      import {SkyboxNode} from './js/render/nodes/skybox.js';
       import {InlineViewerHelper} from './js/util/inline-viewer-helper.js';
+      import {Gltf2Node} from './js/render/nodes/gltf2.js';
       import {QueryArgs} from './js/util/query-args.js';
-
+      import {VideoNode} from './js/render/nodes/video.js';
       // If requested, use the polyfill to provide support for mobile devices
       // and devices which only support WebVR.
       import WebXRPolyfill from './js/third-party/webxr-polyfill/build/webxr-polyfill.module.js';
@@ -62,8 +59,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         let polyfill = new WebXRPolyfill();
       }
 
-      let autoplayCheckbox = document.getElementById('autoplayVideo');
-
+      
       // XR globals.
       let xrButton = null;
       let xrImmersiveRefSpace = null;
@@ -73,20 +69,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let gl = null;
       let renderer = null;
       let scene = new Scene();
-      scene.addNode(new Gltf2Node({url: 'media/gltf/home-theater/home-theater.gltf'}));
-      scene.enableStats(false);
+      let solarSystem = new Gltf2Node({url: 'media/gltf/space/empty.gltf'});
+      // The solar system is big (citation needed). Scale it down so that users
+      // can move around the planets more easily.
+      solarSystem.scale = [0.1, 0.1, 0.1];
+      scene.addNode(solarSystem);
+      // Still adding a skybox, but only for the benefit of the inline view.
+
 
       let video = document.createElement('video');
       video.loop = true;
-      video.src = 'media/video/bbb-sunflower-540p2-1min.webm';
+      video.src = 'media/video/Laughing.mp4';
 
+      
       let videoNode = new VideoNode({
-        video: video,
-        displayMode: 'stereoTopBottom'
+      video: video,
+   //   displayMode: 'stereoTopBottom'
       });
 
+       video.play();
       // When the video is clicked we'll pause it if it's playing.
       videoNode.onSelect(() => {
+     
         if (!video.paused) {
           playButton.visible = true;
           video.pause();
@@ -96,13 +100,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
       });
       videoNode.selectable = true;
-
+/* --------------------------------------------------
       // Move back to the position of the in-room screen and size to cover it.
       // Values determined experimentally and with many refreshes.
       videoNode.translation = [0.025, 0.275, -4.4];
       videoNode.scale = [2.1, 1.1, 1.0];
       scene.addNode(videoNode);
-
+      video.play();
       video.addEventListener('loadeddata', () => {
         // Once the video has loaded up adjust the aspect ratio of the "screen"
         // to fit the video's native shape.
@@ -113,10 +117,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           videoNode.scale = [2.1, 2.1 / aspect, 1.0];
         }
       });
-
       // Add a button to the scene to play/pause the movie.
       let playTexture = new UrlTexture('media/textures/play-button.png');
-
       // Create a button that plays the video when clicked.
       let playButton = new ButtonNode(playTexture, () => {
         // Play the video and hide the button.
@@ -130,21 +132,39 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       playButton.translation = [0.025, 0.275, -4.2];
       playButton.scale = [5.0, 5.0, 5.0];
       scene.addNode(playButton);
-
+---------------------------------------------------------------------- */
       function initXR() {
         xrButton = new WebXRButton({
           onRequestSession: onRequestSession,
-          onEndSession: onEndSession
+          onEndSession: onEndSession,
+          textEnterXRTitle: "START AR",
+          textXRNotFoundTitle: "AR NOT FOUND",
+          textExitXRTitle: "EXIT  AR",
         });
         document.querySelector('header').appendChild(xrButton.domElement);
 
         if (navigator.xr) {
-          navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+          // Checks to ensure that 'immersive-ar' mode is available, and only
+          // enables the button if so.
+          navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
             xrButton.enabled = supported;
           });
 
           navigator.xr.requestSession('inline').then(onSessionStarted);
         }
+      }
+
+      function onRequestSession() {
+        // Requests an 'immersive-ar' session, which ensures that the users
+        // environment will be visible either via video passthrough or a
+        // transparent display. This may be presented either in a headset or
+        // fullscreen on a mobile device.
+        return navigator.xr.requestSession('immersive-ar')
+            .then((session) => {
+              xrButton.setSession(session);
+              session.isImmersive = true;
+              onSessionStarted(session);
+            });
       }
 
       function initGL() {
@@ -164,61 +184,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         onResize();
 
         renderer = new Renderer(gl);
+
         scene.setRenderer(renderer);
-      }
-
-      function onRequestSession() {
-        let autoplay = autoplayCheckbox.checked;
-
-        let pending;
-
-        if (autoplay) {
-          // If we want the video to autoplay when the session has fully started
-          // (which may be several seconds after the original requestSession
-          // call due to clicking through consent prompts or similar) then we
-          // need to start the video within a user activiation event first
-          // (which this function is.) Once it's been started successfully we
-          // pause it, at which point we can resume it pretty much whenever we'd
-          // like.
-          pending = video.play().then(() => {
-            video.pause();
-          });
-        }
-
-        return navigator.xr.requestSession('immersive-vr', {
-            requiredFeatures: ['local-floor']
-        }).then((session) => {
-          xrButton.setSession(session);
-          session.isImmersive = true;
-          onSessionStarted(session);
-
-          if (autoplay) {
-            pending.then(() => {
-              video.play();
-            });
-          }
-        });
       }
 
       function onSessionStarted(session) {
         session.addEventListener('end', onSessionEnded);
-        session.addEventListener('select', (ev) => {
-          let refSpace = ev.frame.session.isImmersive ?
-                           xrImmersiveRefSpace :
-                           inlineViewerHelper.referenceSpace;
-          scene.handleSelect(ev.inputSource, ev.frame, refSpace);
-        });
+
+        if (session.isImmersive) {
+          // When in 'immersive-ar' mode don't draw an opaque background because
+          // we want the real world to show through.
+          skybox.visible = false;
+        }
 
         initGL();
-        scene.inputRenderer.useProfileControllerMeshes(session);
 
-        let glLayer = new XRWebGLLayer(session, gl);
-        session.updateRenderState({ baseLayer: glLayer });
+        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
 
-        // In this case we're going to use an 'local' frame of reference
-        // because we want to users head to appear in the right place relative
-        // to the center chair, as if they're sitting in it, rather than
-        // somewhere in the room relative to the floor.
         let refSpaceType = session.isImmersive ? 'local' : 'viewer';
         session.requestReferenceSpace(refSpaceType).then((refSpace) => {
           if (session.isImmersive) {
@@ -226,7 +208,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           } else {
             inlineViewerHelper = new InlineViewerHelper(gl.canvas, refSpace);
           }
-
           session.requestAnimationFrame(onXRFrame);
         });
       }
@@ -238,10 +219,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       function onSessionEnded(event) {
         if (event.session.isImmersive) {
           xrButton.setSession(null);
-          video.pause();
+          // Turn the background back on when we go back to the inlive view.
+          skybox.visible = true;
         }
       }
 
+      // Called every time a XRSession requests that a new frame be drawn.
       function onXRFrame(t, frame) {
         let session = frame.session;
         let refSpace = session.isImmersive ?
@@ -252,8 +235,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         scene.startFrame();
 
         session.requestAnimationFrame(onXRFrame);
-
-        scene.updateInputSources(frame, refSpace);
 
         scene.drawXRFrame(frame, pose);
 
