@@ -78,10 +78,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let video = document.createElement('video');
       video.loop = true;
       video.src = 'media/video/Laughing.mp4';
-
-      let videoNode = new VideoNode({
+      video.play();  
+  /*    let videoNode = new VideoNode({
         video: video,
-        displayMode: 'stereoTopBottom'
+       // displayMode: 'stereoTopBottom'
       });
       
       // Move back to the position of the in-room screen and size to cover it.
@@ -89,7 +89,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       videoNode.translation = [0.025, 0.275, -4.4];
       videoNode.scale = [2.1, 1.1, 1.0];
       scene.addNode(videoNode);
-      video.play();
+      
       video.addEventListener('loadeddata', () => {
         // Once the video has loaded up adjust the aspect ratio of the "screen"
         // to fit the video's native shape.
@@ -99,7 +99,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         } else {
           videoNode.scale = [2.1, 2.1 / aspect, 1.0];
         }
-      });
+      }); */
 //---------------------
       
       function initXR() {
