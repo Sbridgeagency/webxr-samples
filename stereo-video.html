@@ -86,9 +86,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         video: video,
        // displayMode: 'stereoTopBottom'
       });
-
+       video.play();
       // When the video is clicked we'll pause it if it's playing.
       videoNode.onSelect(() => {
+     
         if (!video.paused) {
           playButton.visible = true;
           video.pause();
@@ -98,7 +99,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
       });
       videoNode.selectable = true;
-/* --------------------------------------------------
+
       // Move back to the position of the in-room screen and size to cover it.
       // Values determined experimentally and with many refreshes.
       videoNode.translation = [0.025, 0.275, -4.4];
@@ -115,7 +116,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           videoNode.scale = [2.1, 2.1 / aspect, 1.0];
         }
       });
-
+/* --------------------------------------------------
       // Add a button to the scene to play/pause the movie.
       let playTexture = new UrlTexture('media/textures/play-button.png');
 
