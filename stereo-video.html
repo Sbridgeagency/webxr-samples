@@ -59,32 +59,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       // WebGL scene globals.
       let gl = null;
       
-/*--------------------- The Video Block
-      let video = document.createElement('video');
-      video.loop = true;
-      video.src = 'media/video/Laughing.mp4';
-      video.play();  
-      let videoNode = new VideoNode({
-        video: video,
-       // displayMode: 'stereoTopBottom'
-      });
-       
-      // Move back to the position of the in-room screen and size to cover it.
-      // Values determined experimentally and with many refreshes.
-      videoNode.translation = [0.025, 0.275, -4.4];
-      videoNode.scale = [1, 1, 1.0];
-      scene.addNode(videoNode);
-       /*  
-      video.addEventListener('loadeddata', () => {
-        // Once the video has loaded up adjust the aspect ratio of the "screen"
-        // to fit the video's native shape.
-        let aspect = videoNode.aspectRatio;
-        if (aspect < 2.0) {
-          videoNode.scale = [aspect * 1.1, 1.1, 1.0];
-        } else {
-          videoNode.scale = [2.1, 2.1 / aspect, 1.0];
-        }
-      }); 
+
 //--------------------- */
 
       function checkSupportedState() {
@@ -127,6 +102,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       function onSessionStarted(session) {
         xrSession = session;
         xrButton.innerHTML = 'Exit AR';
+        /--------------------- The Video Block
+      let video = document.createElement('video');
+      video.loop = true;
+      video.src = 'media/video/Laughing.mp4';
+      video.play();  
+      let videoNode = new VideoNode({
+        video: video,
+       // displayMode: 'stereoTopBottom'
+      });
+       
+      // Move back to the position of the in-room screen and size to cover it.
+      // Values determined experimentally and with many refreshes.
+      videoNode.translation = [0.025, 0.275, -4.4];
+      videoNode.scale = [1, 1, 1.0];
+      scene.addNode(videoNode);
+       /*  
+      video.addEventListener('loadeddata', () => {
+        // Once the video has loaded up adjust the aspect ratio of the "screen"
+        // to fit the video's native shape.
+        let aspect = videoNode.aspectRatio;
+        if (aspect < 2.0) {
+          videoNode.scale = [aspect * 1.1, 1.1, 1.0];
+        } else {
+          videoNode.scale = [2.1, 2.1 / aspect, 1.0];
+        }
+      }); 
 
         // Show which type of DOM Overlay got enabled (if any)
         if (session.domOverlayState) {
