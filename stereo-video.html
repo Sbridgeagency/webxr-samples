@@ -12,7 +12,7 @@ init: function () {
 // Set up initial state and variables.
 this.toggle = false;
 this.vid = document.querySelector("#video")
-this.vid.pause();
+this.vid.play();
 },
 tick:function(){
 
@@ -23,7 +23,7 @@ this.vid.play();
 }
 }else{
 this.toggle = false;
-this.vid.pause();
+this.vid.play();
 }
 }
 });
