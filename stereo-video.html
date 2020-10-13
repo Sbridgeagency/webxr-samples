@@ -1,189 +1,55 @@
-<!doctype html>
-<!--
-Copyright 2020 The Immersive Web Community Group
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
--->
 <html>
   <head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
-    <meta name='mobile-web-app-capable' content='yes'>
-    <meta name='apple-mobile-web-app-capable' content='yes'>
-    <link rel='icon' type='image/png' sizes='32x32' href='favicon-32x32.png'>
-    <link rel='icon' type='image/png' sizes='96x96' href='favicon-96x96.png'>
-    <link rel='stylesheet' href='css/common.css'>
-
-    <title>Barebones AR</title>
+    <title>R.A com video</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   </head>
-  <body>
-    <div id="overlay">
-      <header>
-        <details open>
-          <summary>Barebones WebXR DOM Overlay</summary>
-          <p>
-            This sample demonstrates extremely simple use of an "immersive-ar"
-            session with no library dependencies, with an optional DOM overlay.
-            It doesn't render anything exciting, just draws a rectangle with a
-            slowly changing color to prove it's working.
-            <a class="back" href="./index.html">Back</a>
-          </p>
-          <div id="session-info"></div>
-          <div id="warning-zone"></div>
-          <button id="xr-button" class="barebones-button" disabled>XR not found</button>
-        </details>
-      </header>
-    </div>
-    <main style='text-align: center;'>
-      <p>Click 'Enter AR' to see content</p>
-    </main>
-    <script type="module">
-     import {VideoNode} from './js/render/nodes/video.js';
-      // XR globals.
-      let xrButton = document.getElementById('xr-button');
-      let xrSession = null;
-      let xrRefSpace = null;
+  
+<script>
+AFRAME.registerComponent('controlador', {
+// ...
+init: function () {
+// Set up initial state and variables.
+this.toggle = false;
+this.vid = document.querySelector("#video")
+this.vid.pause();
+},
+tick:function(){
 
-      // WebGL scene globals.
-      let gl = null;
+if(this.el.object3D.visible == true){
+if(!this.toggle){
+this.toggle = true;
+this.vid.play();
+}
+}else{
+this.toggle = false;
+this.vid.pause();
+}
+}
+});
+</script> 
+  
+  <body style="margin: 0px; overflow: hidden;">
+    
+    <a-scene vr-mode-ui="enabled: false;" embedded arjs="debugUIEnabled: false;">
       
-
-//--------------------- */
-
-      function checkSupportedState() {
-        navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
-          if (supported) {
-            xrButton.innerHTML = 'Enter AR';
-          } else {
-            xrButton.innerHTML = 'AR not found';
-          }
-
-          xrButton.disabled = !supported;
-        });
-      }
-
-      function initXR() {
-        if (!window.isSecureContext) {
-          let message = "WebXR unavailable due to insecure context";
-          document.getElementById("warning-zone").innerText = message;
-        }
-
-        if (navigator.xr) {
-          xrButton.addEventListener('click', onButtonClicked);
-          navigator.xr.addEventListener('devicechange', checkSupportedState);
-          checkSupportedState();
-        }
-      }
-
-      function onButtonClicked() {
-        if (!xrSession) {
-            // Ask for an optional DOM Overlay, see https://immersive-web.github.io/dom-overlays/
-            navigator.xr.requestSession('immersive-ar', {
-                optionalFeatures: ['dom-overlay'],
-                domOverlay: {root: document.getElementById('overlay')}
-            }).then(onSessionStarted, onRequestSessionError);
-        } else {
-          xrSession.end();
-        }
-      }
-
-      function onSessionStarted(session) {
-        xrSession = session;
-        xrButton.innerHTML = 'Exit AR';
-        /--------------------- The Video Block
-      let video = document.createElement('video');
-      video.loop = true;
-      video.src = 'media/video/Laughing.mp4';
-      video.play();  
-      let videoNode = new VideoNode({
-        video: video,
-       // displayMode: 'stereoTopBottom'
-      });
-       
-      // Move back to the position of the in-room screen and size to cover it.
-      // Values determined experimentally and with many refreshes.
-      videoNode.translation = [0.025, 0.275, -4.4];
-      videoNode.scale = [1, 1, 1.0];
-      scene.addNode(videoNode);
-       /*  
-      video.addEventListener('loadeddata', () => {
-        // Once the video has loaded up adjust the aspect ratio of the "screen"
-        // to fit the video's native shape.
-        let aspect = videoNode.aspectRatio;
-        if (aspect < 2.0) {
-          videoNode.scale = [aspect * 1.1, 1.1, 1.0];
-        } else {
-          videoNode.scale = [2.1, 2.1 / aspect, 1.0];
-        }
-      }); 
-
-        // Show which type of DOM Overlay got enabled (if any)
-        if (session.domOverlayState) {
-          document.getElementById('session-info').innerHTML = 'DOM Overlay type: ' + session.domOverlayState.type;
-        }
-
-        session.addEventListener('end', onSessionEnded);
-        let canvas = document.createElement('canvas');
-        gl = canvas.getContext('webgl', {
-          xrCompatible: true
-        });
-        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
-        session.requestReferenceSpace('local').then((refSpace) => {
-          xrRefSpace = refSpace;
-          session.requestAnimationFrame(onXRFrame);
-        });
-      }
-
-      function onRequestSessionError(ex) {
-        alert("Failed to start immersive AR session.");
-        console.error(ex.message);
-      }
-
-      function onEndSession(session) {
-        session.end();
-      }
-
-      function onSessionEnded(event) {
-        xrSession = null;
-        xrButton.innerHTML = 'Enter AR';
-        document.getElementById('session-info').innerHTML = '';
-        gl = null;
-      }
-
-      function onXRFrame(t, frame) {
-        let session = frame.session;
-        session.requestAnimationFrame(onXRFrame);
-        let pose = frame.getViewerPose(xrRefSpace);
-
-        if (pose) {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
-
-          // Update the clear color so that we can observe the color in the
-          // headset changing over time. Use a scissor rectangle to keep the AR
-          // scene visible.
-          const width = session.renderState.baseLayer.framebufferWidth;
-          const height = session.renderState.baseLayer.framebufferHeight;
-          gl.enable(gl.SCISSOR_TEST);
-          gl.scissor(width / 4, height / 4, width / 2, height / 2);
-          let time = Date.now();
-          gl.clearColor(Math.cos(time / 2000), Math.cos(time / 4000), Math.cos(time / 6000), 0.5);
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        }
-      }
-
-      initXR();
-    </script>
+      <a-assets>
+       <video id="video" src="https://cdn.glitch.com/32b943b4-bba8-423c-8fca-a7e3b48b296a%2FIMG_0880.MOV?v=1590507664131"></video>
+      </a-assets>
+    
+      <a-marker present="hiro" controlador>
+      
+        <a-video width="1.5"
+                 height="1"
+                 rotation="-90 -90 0"
+                 position="0 0 0"
+                 src="#video">
+        </a-video>
+        
+      </a-marker>
+    
+    <a-entity camera></a-entity>
+    </a-scene>
+    
   </body>
 </html>
